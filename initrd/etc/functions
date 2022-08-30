@@ -1,6 +1,8 @@
 #!/bin/sh
 # Shell functions for most initialization scripts
 
+. /etc/gui_functions
+
 die() {
 	echo >&2 "$*";
 	exit 1;
@@ -132,7 +134,44 @@ enable_usb()
 
 }
 
-confirm_gpg_card()
+confirm_gpg_card_usb()
+{
+	read \
+		-n 1 \
+		-p "Please confirm that your USB drive with the GPG *.key is inserted [Y/n]: " \
+		card_confirm
+	echo
+
+	if [ "$card_confirm" != "y" \
+		-a "$card_confirm" != "Y" \
+		-a -n "$card_confirm" ] \
+	; then
+		die "gpg usb key not confirmed"
+	fi
+
+	if (whiptail --title 'GPG private key required' \
+          --yesno "This requires you insert a USB drive containing:\n* Your GPG private key (*.key or *.asc)\n\nDo you want to proceed?" 16 90) then
+		mount_usb
+		if grep -q /media /proc/mounts ; then
+		find /media -name '*.key' > /tmp/filelist.txt
+		find /media -name '*.asc' >> /tmp/filelist.txt
+		file_selector "/tmp/filelist.txt" "Choose your GPG private key"
+		# bail if user didn't select a file
+			if [ "$FILE" = "" ]; then
+				return
+			else
+				PRIVKEY=$FILE
+			fi
+		fi
+	fi
+
+	echo -e "Importing GPG key..."
+	cat "$PRIVKEY" | gpg --import
+}
+
+
+
+confirm_gpg_card_key()
 {
 	read \
 		-n 1 \
@@ -174,6 +213,23 @@ confirm_gpg_card()
 	fi
 }
 
+confirm_gpg_card()
+{
+	read \
+		-n 1 \
+		-p "Is the key a phisycal GPG key (K) or is it a *.key in a USB (u)? [K/u]: " \
+		card_confirm
+	echo
+
+	if [ "$card_confirm" != "k" \
+		-a "$card_confirm" != "K" \
+		-a -n "$card_confirm" ] \
+	; then
+		confirm_gpg_card_usb
+	else
+		confirm_gpg_card_key
+	fi
+}
 
 check_tpm_counter()
 {
