@@ -1,3 +1,7 @@
+# Attention! 
+
+### This is an unnoficial fork of heads with a modified "initrd/etc/functions" script to let the user use a GPG key stored in a plain .key or .asc format in a USB stick without GPG hardware keys. Please bear in mind this makes it a really worse option regarding security and should only be used for testing, I recommend getting a GPG hardware key better. Use at your own risk.
+
 ![Heads booting on an x230](https://user-images.githubusercontent.com/827570/156627927-7239a936-e7b1-4ffb-9329-1c422dc70266.jpeg)
 
 Heads: the other side of TAILS
